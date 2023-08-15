@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: prod
+    image: auth_service:${AUTH_SERVICE_VERSION:-latest}
+    restart: always
+    env_file:
+    - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      AUTH_SERVICE_HOST: 0.0.0.0
+      AUTH_SERVICE_DB_HOST: auth_service-db
+      AUTH_SERVICE_DB_PORT: 5432
+      AUTH_SERVICE_DB_USER: auth_service
+      AUTH_SERVICE_DB_PASS: auth_service
+      AUTH_SERVICE_DB_BASE: auth_service
+
+  db:
+    image: postgres:13.8-bullseye
+    hostname: auth_service-db
+    environment:
+      POSTGRES_PASSWORD: "auth_service"
+      POSTGRES_USER: "auth_service"
+      POSTGRES_DB: "auth_service"
+    volumes:
+    - auth_service-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U auth_service
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: auth_service:${AUTH_SERVICE_VERSION:-latest}
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      AUTH_SERVICE_DB_HOST: auth_service-db
+      AUTH_SERVICE_DB_PORT: 5432
+      AUTH_SERVICE_DB_USER: auth_service
+      AUTH_SERVICE_DB_PASS: auth_service
+      AUTH_SERVICE_DB_BASE: auth_service
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+
+volumes:
+  auth_service-db-data:
+    name: auth_service-db-data
