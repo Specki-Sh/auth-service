@@ -9,10 +9,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Install dependencies
-      run: npm ci
+    - name: Install commitlint
+      run: npm install --save-dev @commitlint/cli @commitlint/config-conventional
     - name: Lint commit messages
-      run: npx commitlint --from ${{ github.event.before }} --to ${{ github.event.after }}
+      run: npx commitlint --from ${{ github.event.before }} --to ${{ github.event.after }} --config @commitlint/config-conventional
   black:
     runs-on: ubuntu-latest
     steps:
