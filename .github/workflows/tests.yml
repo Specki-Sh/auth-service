@@ -10,7 +10,9 @@ jobs:
       with:
         fetch-depth: 0
     - name: Install commitlint
-      run: npm install --save-dev @commitlint/cli @commitlint/config-conventional
+      run: |
+        npm install --save-dev @commitlint/config-conventional @commitlint/cli
+        echo "module.exports = {extends: ['@commitlint/config-conventional']};" > commitlint.config.js
     - name: Lint commit messages
       run: npx commitlint --from ${{ github.event.before }} --to ${{ github.event.after }} --config @commitlint/config-conventional
   black:
